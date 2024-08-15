@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Leaflet Search Bar Example</title>
+
+    <!-- Make sure you have Leaflet.js set up in your project. If not, you can include it via CDN: -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+
+    <!-- Add the Leaflet Control Search plugin to your project. You can include it via CDN: -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-search@2.9.8/dist/leaflet-search.min.css" />
+
+
+    <style>
+        /* how the map is initialized and displayed in the #map div */
+        #map {
+            height: 400px;
+            width: 70%;
+            float: left;
+        }
+
+        /* a container for the search bar and the apartment list */
+        #sidebar {
+            width: 30%;
+            float: left;
+            padding: 10px;
+        }
+
+        /* an unordered list that will dynamically display the apartments */
+        #apartment-list {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        #apartment-list li {
+            padding: 5px;
+            cursor: pointer;
+            border-bottom: 1px solid #ccc;
+        }
+
+        #apartment-list li:hover {
+            background-color: #f0f0f0;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Create a basic search bar // doesn't work need to probably implement a search btn !! -->
+    <div id="sidebar"> <!-- a container for the search bar and the apartment list -->
+        <input type="text" id="location-search" placeholder="Search for an apartment"
+            style="width: 100%; padding: 5px;">
+        <!-- #location-search: an input filed where users can search for a specific location // not working!! -->
+        <ul id="apartment-list"></ul> <!-- an unordered list that will dynamically display the apartments -->
+    </div>
+
+    <!-- Create a basic Leaflet map and add some markers to search: (div and scripts) -->
+    <div id="map"></div> <!--  how the map is initialized and displayed in the #map div -->
+
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-control-search@2.9.8/dist/leaflet-search.min.js"></script>
+
+    <script>
+        var map = L.map('map').setView([53.5461, -113.4937], 13); /* Long and Lat when users entre website */
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19
+        }).addTo(map);
+
+        var markers = [
+            /* For each marker, an <li> element is created and added to the #apartment-list. */
+            { "loc": [53.483180, -113.505200], "title": "Empire Park" },
+            { "loc": [53.486570, -113.505710], "title": "Midwest" },
+            { "loc": [53.506030, -113.501480], "title": "Jasmine Apartments" },
+            { "loc": [53.483200, -113.502289], "title": "South Ridge Townhomes" },
+        ];
+
+        var markerLayer = L.layerGroup(); /* Markers are added to the map as well as to the markerLayer. */
+        var apartmentList = document.getElementById('apartment-list'); /* variable made to create function and li for apar-list */
+
+        markers.forEach(function (marker) {
+            var m = L.marker(marker.loc).bindPopup(marker.title);
+            markerLayer.addLayer(m);
+
+            // Add apartment to the list inside the loop
+            var listItem = document.createElement('li'); /* creates li of the "var = marker" who's markers have "title" */
+            listItem.textContent = marker.title;
+
+            /*Clicking on a list item will zoom the map to the corresponding apartment marker and open its popup. */
+            listItem.addEventListener('click', function () {
+                map.setView(marker.loc, 14);
+                m.openPopup();
+            });
+            apartmentList.appendChild(listItem);
+        });
+
+        map.addLayer(markerLayer);
+
+        // Add search functionality V V V
+        // Now, you can add the search control to your map and configure it to search through the markers:
+
+        /* The L.Control.Search plugin is used to add a search bar that allows users to search for apartment markers by their title. */
+        var searchControl = new L.Control.Search({
+            /* You can customize the search bar by modifying the options passed to L.Control.Search, such as:
+           - position: Adjust the position of the search bar (e.g., 'topright', 'topleft').
+           - textPlaceholder: Customize the placeholder text inside the search bar.
+           - OPTIONAL
+           */
+            layer: markerLayer,
+            propertyName: 'title',
+            marker: false,
+            textPlaceholder: 'Search for apartments...', /* not sure where this shows or how to display it */
+            moveToLocation: function (latlng, title, map) {
+                map.setView(latlng, 14);
+            }
+        });
+
+
+        searchControl.on('search:locationfound', function (e) {
+            e.layer.openPopup();
+        });
+
+        map.addControl(searchControl);
+    </script>
+
+</body>
+
+</html>
+
+
+<!-- 
+ https://leafletjs.com/reference.html
+ -->
